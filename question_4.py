@@ -17,10 +17,9 @@ cc_df.shape
 pd.set_option("display.max_rows", None)
 cc_df.dtypes
 # %%
-def cc_pipeline(df):
     """
-    This will serve as the pipeline for College Completion dataset.
-    Returns train, tune, and test splits.
+    Pipeline for College Completion dataset.
+    This function will serve as a structure for both pipelines
     """
     # Copy of course, can't lose it
     df = df.copy()
@@ -101,6 +100,7 @@ X_train, X_tune, X_test, y_train, y_tune, y_test = cc_pipeline(cc_df)
 
 # %%
 # Checking and comparing the x and the y rows of our sets
+# If my pipeline is correct, the rows should match
 print(X_train.shape, y_train.shape)
 print(X_tune.shape, y_tune.shape)
 print(X_test.shape, y_test.shape)
@@ -111,12 +111,6 @@ print(X_test.shape, y_test.shape)
 #%%
 # Job Placement Dataset 
 
-# Importing all libraries needed for this project
-import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from io import StringIO 
 # %%
 jp_df = pd.read_csv("Data/job_placement.csv")
 jp_df.shape
@@ -190,6 +184,7 @@ def jp_pipeline(jp_df): # Utilizing funtions from my first piepline and adjustin
 # %%
 # Assigning outputs of pipeline to call the pipeline itself
 # Using the same testing block as last time
+# Again, if my pipeline is correct, the rows should match
 X_train, X_tune, X_test, y_train, y_tune, y_test = jp_pipeline(jp_df)
 
 print(X_train.shape, y_train.shape)
