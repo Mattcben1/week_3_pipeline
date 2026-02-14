@@ -11,28 +11,26 @@ from io import StringIO
 
 # %%
 # Importing dataset and calling shape
-cc_df = pd.read_csv("Data/cc_institution_details.csv")
-cc_df.shape
+df = pd.read_csv("Data/cc_institution_details.csv")
+df.shape
 #%%
 pd.set_option("display.max_rows", None)
-cc_df.dtypes
+df.dtypes
 # %%
+def cc_pipeline(df):
     """
-    Pipeline for College Completion dataset.
-    This function will serve as a structure for both pipelines
+        Pipeline for College Completion dataset.
+        This function will serve as a structure for both pipelines
     """
     # Copy of course, can't lose it
     df = df.copy()
 
     # 1.) Fix variable types- converting columns when necessary (categorical, numerical)
     categorical_cols = [
-        "state",
         "level",
         "control",
-        "basic",
         "hbcu",
         "flagship",
-        "counted_pct"
     ]
     for col in categorical_cols: #converting to categorical type 
         if col in df.columns:
@@ -53,6 +51,9 @@ cc_df.dtypes
     ]
     df = df.drop(columns=[c for c in id_cols if c in df.columns])
 
+    df = df.drop(columns=["state", "basic", "counted_pct"], errors="ignore")
+
+
     # 3.) Identifying target col and dropping rows with missing target values
     # Target column will be grad 150 value
     target_col = "grad_150_value"
@@ -60,9 +61,19 @@ cc_df.dtypes
     # Drop rows where target_col is missing
     df = df.dropna(subset=[target_col])
 
-    # assigning predictors x and y
-    Y = df[target_col]
-    X = df.drop(columns=[target_col])
+    # Convert continuous graduation rate into binary classification
+    # 1 = Above median graduation rate
+    # 0 = Below or equal to median
+    median_val = df[target_col].median()
+
+    df["grad_flag"] = (df[target_col] > median_val).astype(int)
+
+    # Drop original continuous target
+    df = df.drop(columns=[target_col])
+
+    # Assign predictors and target
+    Y = df["grad_flag"]
+    X = df.drop(columns=["grad_flag"])
     # Now that x and y separated ready for one-hot encoding and scaling
 
     # 4.) One-hot encoding categorical variables to create binary colomuns
@@ -82,28 +93,35 @@ cc_df.dtypes
         X,
         Y,
         test_size=0.4,
-        random_state=42
+        random_state=42,
+        stratify=Y
     )
     # Second split into tune and test
     X_tune, X_test, Y_tune, Y_test = train_test_split(
         X_temp,
         Y_temp,
         test_size=0.5,
-        random_state=42
+        random_state=42,
+        stratify=Y_temp
     )
     # Returning all datasets
     return X_train, X_tune, X_test, Y_train, Y_tune, Y_test
+    
 
 # %%
 # Assigning outputs of pipeline to call the pipeline itself
-X_train, X_tune, X_test, y_train, y_tune, y_test = cc_pipeline(cc_df)
+X_train, X_tune, X_test, Y_train, Y_tune, Y_test = cc_pipeline(df)
 
 # %%
+print(Y_train.value_counts())
+#%%
+X_train.shape
+#%%
 # Checking and comparing the x and the y rows of our sets
 # If my pipeline is correct, the rows should match
-print(X_train.shape, y_train.shape)
-print(X_tune.shape, y_tune.shape)
-print(X_test.shape, y_test.shape)
+print(X_train.shape, Y_train.shape)
+print(X_tune.shape, Y_tune.shape)
+print(X_test.shape, Y_test.shape)
 
 
 
@@ -170,7 +188,8 @@ def jp_pipeline(jp_df): # Utilizing funtions from my first piepline and adjustin
         X,
         Y,
         test_size=0.4,
-        random_state=42
+        random_state=42,
+        stratify=Y
     )
     # Second split into tune and test
     X_tune, X_test, Y_tune, Y_test = train_test_split(
@@ -178,6 +197,7 @@ def jp_pipeline(jp_df): # Utilizing funtions from my first piepline and adjustin
         Y_temp,
         test_size=0.5,
         random_state=42
+        stratify=Y_temp
     )
     # Returning all datasets
     return X_train, X_tune, X_test, Y_train, Y_tune, Y_test
